@@ -97,6 +97,12 @@ def merge_with(args, s_m_p, ref_r, g1_r, g2_r, ref_m_p, g1_m_p, g2_m_p, ref_m_no
     return [s_m_p, ref_r, g1_r, g2_r]
 
 def merge_genomes(ref, g1, g2):
+    ref = add_missing(ref.copy(), g1.copy())
+    ref = add_missing(ref.copy(), g2.copy())
+    g1 = add_missing(g1.copy(), ref.copy())
+    g1 = add_missing(g1.copy(), g2.copy())
+    g2 = add_missing(g2.copy(), ref.copy())
+    g2 = add_missing(g2.copy(), g1.copy())
     ref['size'], g1['size'], g2['size'] = 1, 1, 1
     ref['id'], g1['id'], g2['id'] = range(len(ref)), range(len(g1)), range(len(g2))
     ref_m_p = get_possible_merge_points(ref.copy())
@@ -111,3 +117,17 @@ def merge_genomes(ref, g1, g2):
         args = str(bin(step))[-3:]
         s_m_p, ref, g1, g2 = merge_with(args, s_m_p, ref, g1, g2, ref_m_p, g1_m_p, g2_m_p, ref_m_no_sign, g1_m_no_sign, g2_m_no_sign)
     return [ref, g1, g2]
+
+def find_missing(ref, g1):
+    g1['adjacency'] = g1['adjacency'].map(lambda a: abs(a))
+    ref['adjacency'] = ref['adjacency'].map(lambda a: abs(a))
+    res = g1[~g1['adjacency'].isin(ref['adjacency']).values]
+    return res
+
+def add_missing(ref, g2):
+    missing = find_missing(ref, g2)
+    missing['label'] = 'm'
+    res = pd.concat([ref, missing])
+    res = res.reset_index()
+    del res['index']
+    return  res
