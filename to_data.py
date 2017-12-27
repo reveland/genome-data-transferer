@@ -1,6 +1,8 @@
 from collections import OrderedDict
 import itertools
 
+import persister
+
 def sort_g(g):
     g['l'] = g['label'].apply(lambda l: int(l) if l.isdigit() else 1000)
     g = g.sort_values(['l','id'], ascending=[True,True])
@@ -27,6 +29,9 @@ def get_genome(name, genome):
     return g
 
 def to_data(ref, g1, g2):
+    persister.persist(ref, 'fitted', 'ref')
+    persister.persist(g1, 'fitted', 'g1')
+    persister.persist(g2, 'fitted', 'g2')
     blocks = get_blocks(ref.copy())
     ref_r = get_genome('referenceGenom', ref)
     g1_r = get_genome('genomeName1', g1)

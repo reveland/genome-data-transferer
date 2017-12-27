@@ -2,6 +2,8 @@ from collections import OrderedDict
 
 import pandas as pd
 
+import persister
+
 def get_possible_merge_points(g):
     prev_id  = g['id'].values[0]
     prev_adjacency = g['adjacency'].values[0]
@@ -97,6 +99,9 @@ def merge_with(args, s_m_p, ref_r, g1_r, g2_r, ref_m_p, g1_m_p, g2_m_p, ref_m_no
     return [s_m_p, ref_r, g1_r, g2_r]
 
 def merge_genomes(ref, g1, g2):
+    persister.persist(ref, 'init', 'ref')
+    persister.persist(g1, 'init', 'g1')
+    persister.persist(g2, 'init', 'g2')
     ref = add_missing(ref.copy(), g1.copy())
     ref = add_missing(ref.copy(), g2.copy())
     g1 = add_missing(g1.copy(), ref.copy())
@@ -125,9 +130,21 @@ def find_missing(ref, g1):
     return res
 
 def add_missing(ref, g2):
-    missing = find_missing(ref, g2)
+    missing = find_missing(ref.copy(), g2.copy())
     missing['label'] = 'm'
     res = pd.concat([ref, missing])
     res = res.reset_index()
     del res['index']
     return  res
+
+# ref = pd.DataFrame([1,2,3,4,5,6,7,8], columns=['adjacency'])
+# g1 = pd.DataFrame([-3,-2,-1,-6,-5,-4,-9,-8,-7], columns=['adjacency'])
+# g2 = pd.DataFrame([1,2,3,-6,-5,-4,7,8,9], columns=['adjacency'])
+# ref['label'], g1['label'], g2['label'] = 'x', 'x', 'x'
+
+# ref = pd.DataFrame([-2,-1], columns=['adjacency'])
+# g1 = pd.DataFrame([1,2], columns=['adjacency'])
+# g2 = pd.DataFrame([1,2], columns=['adjacency'])
+# ref['label'], g1['label'], g2['label'] = 'x', 'y', 'z'
+
+# print(merge_genomes(ref, g1, g2))

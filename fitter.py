@@ -1,3 +1,5 @@
+import persister
+
 def set_inverted(g):
     g['inverted'] = g['adjacency'] < 0
     g['adjacency'] = abs(g['adjacency'])
@@ -6,6 +8,9 @@ def fit(b, ref):
     b['id'] = int(ref.loc[ref['adjacency'] == b['adjacency'], 'id'])
     return b
 def fit_genomes(ref, g1, g2):
+    persister.persist(ref, 'merged', 'ref')
+    persister.persist(g1, 'merged', 'g1')
+    persister.persist(g2, 'merged', 'g2')
     ref['id'] = range(len(ref))
     g1['id'] = range(len(g1))
     g2['id'] = range(len(g2))
