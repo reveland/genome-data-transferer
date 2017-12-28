@@ -77,9 +77,18 @@ baseUrl = 'http://localhost:8080/'
 
 @app.route('/dependency_tree', methods=['GET'])
 def dependency_tree():
-    with open('ba_pom.json', 'r') as infile:
-        ba_pom = json.load(infile)
-    newick = json_to_newick(ba_pom)
+    related_project = request.args.get('related_project')
+    # related_project = 'PRI/prime-hcommodules-modules'
+    without_hcm = True
+
+    with open('arp.json', 'r') as infile:
+        arp = json.load(infile)
+        pom = arp[related_project]
+
+    if(without_hcm):
+        remove_hcm(pom)
+
+    newick = json_to_newick(pom, key=lambda d: '#' + str(d['related_project']))
 
     data = newick_parser.parse_newick(newick)
     
@@ -87,12 +96,19 @@ def dependency_tree():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
-def json_to_newick(json, key = lambda d: 'id-' + str(d['id']), scion = lambda d: d['dependencies']):
+def json_to_newick(json, key=lambda d: 'id-' + str(d['id']), scion=lambda d: d['dependencies']):
     """Convert json data to newick tree format"""
     if len(scion(json)) == 0:
         return key(json)
     else:
-        return '%s(%s):10.0' % (key(json), ','.join(map(json_to_newick, scion(json))))
+        return '%s(%s)' % (key(json), ','.join(map(lambda d: json_to_newick(d, key, scion), scion(json))))
+
+def remove_hcm(pom):
+    if pom['related_project'] == 'PRI/prime-hcommodules-modules':
+        pom['dependencies'] = []
+    if len(pom['dependencies']) > 0:
+        for d in pom['dependencies']:
+            remove_hcm(d)
 
 if __name__ == '__main__':
     app.run(debug=False)
