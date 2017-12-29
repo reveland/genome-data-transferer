@@ -8,6 +8,7 @@ import merger
 import fitter
 import to_data
 import newick_parser
+import dependency
 
 
 # LOG_FORMAT = '%(levelname)s %(asctime)s - %(message)s'
@@ -79,16 +80,16 @@ baseUrl = 'http://localhost:8080/'
 def dependency_tree():
     related_project = request.args.get('related_project')
     # related_project = 'PRI/prime-hcommodules-modules'
-    without_hcm = True
+    without_hcm = True if related_project != 'PRI/prime-hcommodules-modules' else False
 
     with open('arp.json', 'r') as infile:
         arp = json.load(infile)
         pom = arp[related_project]
 
     if(without_hcm):
-        remove_hcm(pom)
+        dependency.remove_hcm(pom)
 
-    newick = json_to_newick(pom, key=lambda d: '#' + str(d['related_project']))
+    newick = dependency.json_to_newick(pom, key=lambda d: '#' + str(d['related_project']))
 
     data = newick_parser.parse_newick(newick)
     
@@ -96,19 +97,23 @@ def dependency_tree():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
-def json_to_newick(json, key=lambda d: 'id-' + str(d['id']), scion=lambda d: d['dependencies']):
-    """Convert json data to newick tree format"""
-    if len(scion(json)) == 0:
-        return key(json)
-    else:
-        return '%s(%s)' % (key(json), ','.join(map(lambda d: json_to_newick(d, key, scion), scion(json))))
+@app.route('/inverz_tree', methods=['GET'])
+def inverz_tree():
+    related_project = request.args.get('related_project')
 
-def remove_hcm(pom):
-    if pom['related_project'] == 'PRI/prime-hcommodules-modules':
-        pom['dependencies'] = []
-    if len(pom['dependencies']) > 0:
-        for d in pom['dependencies']:
-            remove_hcm(d)
+    with open('arp.json', 'r') as infile:
+        arp = json.load(infile)
+
+    pom = arp[related_project]
+    pom = dependency.get_dependent_poms(pom.copy())
+
+    newick = dependency.json_to_newick(pom, key=lambda d: '#' + str(d['related_project']))
+
+    data = newick_parser.parse_newick(newick)
+    
+    resp = Response(json.dumps(data))
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 if __name__ == '__main__':
     app.run(debug=False)
