@@ -1,6 +1,6 @@
 import json
 
-with open('arp.json', 'r') as infile:
+with open('data/arp.json', 'r') as infile:
     arp = json.load(infile)
 
 def get_dependent_poms(pom):
@@ -20,7 +20,6 @@ def remove_hcm(pom):
     if len(pom['dependencies']) > 0:
         for d in pom['dependencies']:
             remove_hcm(d)
-
 
 def json_to_newick(json, key=lambda d: 'id-' + str(d['id']), scion=lambda d: d['dependencies']):
     """Convert json data to newick tree format"""
