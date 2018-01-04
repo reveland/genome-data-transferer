@@ -1,4 +1,3 @@
-Flask==0.11.1
-requests==2.10.0
-pandas
-json
+Flask==0.12.2
+simplejson==3.13.2
+biopython==1.70

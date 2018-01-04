@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 
 with open('data/arp.json', 'r') as infile:
     arp = json.load(infile)
