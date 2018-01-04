@@ -20,7 +20,7 @@ def add_clade(clade, y, neighbors_leafs_left):
 
     leafs_left = neighbors_leafs_left
 
-    shift_size = 10
+    shift_size = 5
     shifts = 0
     for c in clade.clades:
         add_clade(c, y + 10, leafs_left)
